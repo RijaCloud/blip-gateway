@@ -12,6 +12,7 @@ import healthRoutes from './routes/health';
 import { ExampleSchedulerService } from './services/exampleSchedulerService';
 import { logger } from './utils/logger';
 
+
 const app = express();
 const server = createServer(app);
 const PORT = getNumberEnv('PORT', 3010);
@@ -42,7 +43,7 @@ const corsOptions: cors.CorsOptions = {
 
     callback(new Error(`Origin non autorisee: ${origin}`));
   },
-  credentials: false,
+  credentials: true, // 👈 FIX 1 : Autorise les cookies au niveau de la Gateway (important pour ton maître de stage)
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Admin-API-Key']
 };
@@ -56,6 +57,7 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   referrerPolicy: { policy: 'no-referrer' }
 }));
+
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
@@ -68,9 +70,12 @@ app.use('/health', healthRoutes);
 
 // Redirection Proxy vers le microservice d'authentification
 app.use('/api/auth', proxy(AUTH_SERVICE_URL, {
+  proxyReqBodyDecorator: (bodyContent, srcReq) => {
+    return srcReq.body ? JSON.stringify(srcReq.body) : bodyContent;
+  },
   proxyReqPathResolver: (req) => {
-    // req.originalUrl contient déjà le chemin complet (/api/auth/signup)
-    return req.originalUrl; 
+    const path = req.url.startsWith('/') ? req.url : `/${req.url}`;
+    return `/api/auth${path}`;
   }
 }));
 
