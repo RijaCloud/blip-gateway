@@ -16,7 +16,6 @@ export const generalLimiter = rateLimit({
       path: req.path,
       ip: req.ip
     });
-
     res.status(429).json({
       success: false,
       error: 'RATE_LIMIT_EXCEEDED',
@@ -39,7 +38,6 @@ export const strictLimiter = rateLimit({
       ip: req.ip,
       auth: req.auth?.identifier
     });
-
     res.status(429).json({
       success: false,
       error: 'STRICT_RATE_LIMIT_EXCEEDED',
