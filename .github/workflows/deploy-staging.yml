@@ -1,0 +1,16 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-node-reusable.yml
+    with:
+      branch: staging
+      app_path: /var/www/blip-gateway-staging
+      environment_name: staging
+      pm2_app_name: blip-gateway
+    secrets: inherit

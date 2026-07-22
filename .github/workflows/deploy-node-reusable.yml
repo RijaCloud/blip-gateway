@@ -1,0 +1,82 @@
+name: Reusable Node Deploy
+
+on:
+  workflow_call:
+    inputs:
+      branch:
+        required: true
+        type: string
+      app_path:
+        required: true
+        type: string
+      environment_name:
+        required: false
+        type: string
+        default: ""
+      pm2_app_name:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment_name }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build service
+        run: npm run build
+
+      - name: Prepare release archive
+        run: |
+          mkdir -p .release/scripts
+          cp ecosystem.config.js .release/ecosystem.config.js
+          cp scripts/restart-service.sh .release/scripts/restart-service.sh
+          cp package.json .release/package.json
+          cp package-lock.json .release/package-lock.json
+          tar -czf release.tar.gz \
+            dist \
+            .release
+
+      - name: Upload release archive to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          source: release.tar.gz
+          target: /tmp
+
+      - name: Activate release on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          command_timeout: 20m
+          script: |
+            set -e
+            mkdir -p "${{ inputs.app_path }}"
+            cd "${{ inputs.app_path }}"
+            tar -xzf /tmp/release.tar.gz -C "${{ inputs.app_path }}"
+            rsync -a .release/ ./
+            rm -rf .release
+            rm -f /tmp/release.tar.gz
+            mkdir -p logs scripts
+            chmod +x ./scripts/restart-service.sh
+            PM2_APP_NAME="${{ inputs.pm2_app_name }}" ./scripts/restart-service.sh

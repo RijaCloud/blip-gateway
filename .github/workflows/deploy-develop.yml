@@ -1,0 +1,16 @@
+name: Deploy to Develop
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-node-reusable.yml
+    with:
+      branch: develop
+      app_path: /var/www/blip-gateway-develop
+      environment_name: develop
+      pm2_app_name: blip-gateway
+    secrets: inherit

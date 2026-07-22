@@ -1,0 +1,16 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [vps-deploy]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-node-reusable.yml
+    with:
+      branch: ${{ github.ref_name }}
+      app_path: /var/www/blip-gateway
+      environment_name: production
+      pm2_app_name: blip-gateway
+    secrets: inherit

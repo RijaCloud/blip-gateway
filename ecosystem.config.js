@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'service-boilerplate',
+      name: 'blip-gateway',
       script: './dist/server.js',
       cwd: __dirname,
       instances: 1,
