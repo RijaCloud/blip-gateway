@@ -1,10 +1,11 @@
-import type { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Response } from 'express';
 import { getRequiredEnv } from '../config/env';
+import type { AppRequest } from '../types/request';
 import { HttpError } from '../utils/httpError';
 
 const getExpectedApiKey = () => getRequiredEnv('API_KEY');
 
-export const requireApiKey = (req: Request, _res: Response, next: NextFunction) => {
+export const requireApiKey = (req: AppRequest, _res: Response, next: NextFunction) => {
   const providedApiKey = req.get('X-API-Key') || req.get('X-Admin-API-Key');
 
   if (!providedApiKey) {

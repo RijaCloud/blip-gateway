@@ -1,7 +1,8 @@
-import type { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Response } from 'express';
+import type { AppRequest } from '../types/request';
 import { logger } from '../utils/logger';
 
-export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
+export const requestLogger = (req: AppRequest, res: Response, next: NextFunction) => {
   req.requestStartTime = Date.now();
 
   res.on('finish', () => {

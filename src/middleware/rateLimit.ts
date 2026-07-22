@@ -1,5 +1,6 @@
 import rateLimit from 'express-rate-limit';
 import { getNumberEnv } from '../config/env';
+import type { AppRequest } from '../types/request';
 import { logger } from '../utils/logger';
 
 const windowMs = getNumberEnv('RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000);
@@ -31,12 +32,13 @@ export const strictLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   validate: { trustProxy: false },
-  keyGenerator: (req) => req.auth?.identifier || req.ip || 'unknown',
+  keyGenerator: (req) => (req as AppRequest).auth?.identifier || req.ip || 'unknown',
   handler: (req, res) => {
+    const appReq = req as AppRequest;
     logger.warn('Strict rate limit reached', {
       path: req.path,
       ip: req.ip,
-      auth: req.auth?.identifier
+      auth: appReq.auth?.identifier
     });
     res.status(429).json({
       success: false,

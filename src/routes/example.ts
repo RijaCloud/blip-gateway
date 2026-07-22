@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { requireApiKey } from '../middleware/auth';
 import { strictLimiter } from '../middleware/rateLimit';
+import type { AppRequest } from '../types/request';
 
 const router = Router();
 
@@ -12,7 +13,7 @@ router.get('/public-ping', (_req, res) => {
   });
 });
 
-router.post('/protected-echo', requireApiKey, strictLimiter, (req, res, next) => {
+router.post('/protected-echo', requireApiKey, strictLimiter, (req: AppRequest, res, next) => {
   try {
     const payload = z.object({
       message: z.string().min(1).max(500)
