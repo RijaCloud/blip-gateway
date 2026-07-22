@@ -17,6 +17,7 @@ const app = express();
 const server = createServer(app);
 const PORT = getNumberEnv('PORT', 3010);
 const AUTH_SERVICE_URL = getRequiredEnv('AUTH_SERVICE_URL');
+const CHAT_SERVICE_URL = getRequiredEnv('CHAT_SERVICE_URL');
 const trustProxySetting =
   process.env.TRUST_PROXY !== undefined
     ? process.env.TRUST_PROXY === 'true' || process.env.TRUST_PROXY === '1'
@@ -85,7 +86,7 @@ app.use('/api/auth',generalLimiter, proxy(AUTH_SERVICE_URL, {
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-app.use('/api/chat', proxy('http://localhost:3010', {
+app.use('/api/chat', proxy(CHAT_SERVICE_URL, {
   proxyReqBodyDecorator: (bodyContent, srcReq) => {
     return srcReq.body ? JSON.stringify(srcReq.body) : bodyContent;
   },
@@ -104,7 +105,8 @@ const bootstrap = async () => {
       port: PORT,
       environment: process.env.NODE_ENV || 'development',
       allowedOrigins,
-      authServiceUrl: AUTH_SERVICE_URL
+      authServiceUrl: AUTH_SERVICE_URL,
+      chatServiceUrl: CHAT_SERVICE_URL
     });
     scheduler.start();
   });
