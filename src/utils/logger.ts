@@ -4,7 +4,7 @@ import winston from 'winston';
 
 const logLevel = process.env.LOG_LEVEL || 'info';
 const serviceName = process.env.APP_NAME || 'service-boilerplate';
-const isVercelRuntime = process.env.VERCEL === '1' || process.env.VERCEL === 'true';
+const enableFileLogging = process.env.ENABLE_FILE_LOGGING === 'true';
 
 const transports: winston.transport[] = [
   new winston.transports.Console({
@@ -15,7 +15,7 @@ const transports: winston.transport[] = [
   })
 ];
 
-if (!isVercelRuntime) {
+if (enableFileLogging) {
   const logsDir = path.resolve(process.cwd(), 'logs');
 
   if (!fs.existsSync(logsDir)) {
